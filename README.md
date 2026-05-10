@@ -28,7 +28,7 @@ Home Assistant integration and live weather data, built with Svelte, .NET and SQ
 
 ## Screenshots
 
-Coming soon...
+![Dashboard Overview](screenshots/dashboard-overview.png)
 
 ## Installation
 
