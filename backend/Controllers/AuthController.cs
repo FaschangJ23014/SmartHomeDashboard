@@ -6,7 +6,6 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace backend.Controllers
 {
@@ -80,11 +79,17 @@ namespace backend.Controllers
             _context.AppUsers.Add(user);
             await _context.SaveChangesAsync();
 
+            var token = CreateJwtToken(user);
+
             return Ok(new
             {
-                user.Id,
-                user.DisplayName,
-                user.Email
+                token,
+                user = new
+                {
+                    user.Id,
+                    user.DisplayName,
+                    user.Email
+                }
             });
         }
 
@@ -143,7 +148,7 @@ namespace backend.Controllers
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!)
             );
-
+            
             var credentials = new SigningCredentials(
                 key,
                 SecurityAlgorithms.HmacSha256
