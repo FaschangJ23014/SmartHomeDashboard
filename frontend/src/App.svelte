@@ -8,6 +8,11 @@
   import AddRoomCard from "./components/AddRoomCard.svelte";
   import AddDeviceCard from "./components/AddDeviceCard.svelte";
 
+  //Login
+  import LoginCard from "./components/LoginCard.svelte";
+  import { getUser, clearAuth } from "./api/authStorage";
+  import type { AuthUser } from "./api/authApi";
+
   import type { Room, Device, HomeAssistantEntity, Weather } from "./types";
 
 
@@ -20,7 +25,7 @@
 
 
 
-
+  let currentUser = $state<AuthUser | null>(getUser());
   let weather = $state<Weather | null>(null);
 
   let devices = $state<Device[]>([]);
@@ -155,54 +160,83 @@ async function deleteDevice(id: number) {
     return devices.filter((device) => device.roomId === roomId && device.isOn);
   }
 
+
+  //Login-Logik
+  function handleLogin(user: AuthUser) {
+  currentUser = user;
+  loadDashboardData();
+}
+
+function logout() {
+  clearAuth();
+  currentUser = null;
+  devices = [];
+  dbRooms = [];
+  haEntities = [];
+}
+
+async function loadDashboardData() {
+  await loadRooms();
+  await loadDevices();
+  await loadHomeAssistantEntities();
+  await loadWeather();
+}
+
   onMount(async () => {
-    await loadRooms();
-    await loadDevices();
-    await loadHomeAssistantEntities();
-    await loadWeather();
-  });
+  if (currentUser) {
+    await loadDashboardData();
+  }
+});
 </script>
 
 
 
 
 
-<main class="app">
-  <Hero {weather} deviceCount={devices.length} />
+{#if !currentUser}
+  <LoginCard onLogin={handleLogin} />
+{:else}
+  <main class="app">
+    <button class="logout-button" on:click={logout}>
+      Logout
+    </button>
 
-  <FilterCard bind:roomSearch bind:deviceSearch />
+    <Hero {weather} deviceCount={devices.length} />
 
-  <AddDeviceCard
-    rooms={dbRooms}
-    {availableHaEntities}
-    bind:newDeviceName
-    bind:newDeviceRoom
-    bind:newDeviceIntegrationType
-    bind:selectedHaEntityId
-    onAddDevice={addDevice}
-  />
+    <FilterCard bind:roomSearch bind:deviceSearch />
 
-  <AddRoomCard
-    bind:newRoomName
-    {canAddRoom}
-    onAddRoom={addRoom}
-  />
+    <AddDeviceCard
+      rooms={dbRooms}
+      {availableHaEntities}
+      bind:newDeviceName
+      bind:newDeviceRoom
+      bind:newDeviceIntegrationType
+      bind:selectedHaEntityId
+      onAddDevice={addDevice}
+    />
 
-  <section class="rooms-grid">
-    {#each filteredRooms as room}
-      <RoomCard
-        {room}
-        devices={getDevicesForRoom(room.id)}
-        activeDeviceCount={getActiveDevicesForRoom(room.id).length}
-        onDeleteRoom={deleteRoom}
-        onToggleDevice={toggleDevice}
-        onDeleteDevice={deleteDevice}
-      />
-    {/each}
-  </section>
-</main>
+    <AddRoomCard
+      bind:newRoomName
+      {canAddRoom}
+      onAddRoom={addRoom}
+    />
 
-<Footer />
+    <section class="rooms-grid">
+      {#each filteredRooms as room}
+        <RoomCard
+          {room}
+          devices={getDevicesForRoom(room.id)}
+          activeDeviceCount={getActiveDevicesForRoom(room.id).length}
+          onDeleteRoom={deleteRoom}
+          onToggleDevice={toggleDevice}
+          onDeleteDevice={deleteDevice}
+        />
+      {/each}
+    </section>
+  </main>
+
+  <Footer />
+{/if}
 
 
 
@@ -213,6 +247,9 @@ async function deleteDevice(id: number) {
 
 
 <style>
+.logout-button {
+  margin-bottom: 20px;
+}
   :global(body) {
     margin: 0;
     min-height: 100vh;
