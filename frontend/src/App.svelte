@@ -7,6 +7,7 @@
   import RoomCard from "./components/RoomCard.svelte";
   import AddRoomCard from "./components/AddRoomCard.svelte";
   import AddDeviceCard from "./components/AddDeviceCard.svelte";
+  import UserBar from "./components/UserBar.svelte";
 
   //Login
   import LoginCard from "./components/LoginCard.svelte";
@@ -197,9 +198,7 @@ async function loadDashboardData() {
   <LoginCard onLogin={handleLogin} />
 {:else}
   <main class="app">
-    <button class="logout-button" on:click={logout}>
-      Logout
-    </button>
+    <UserBar user={currentUser} onLogout={logout} />
 
     <Hero {weather} deviceCount={devices.length} />
 
@@ -247,9 +246,6 @@ async function loadDashboardData() {
 
 
 <style>
-.logout-button {
-  margin-bottom: 20px;
-}
   :global(body) {
     margin: 0;
     min-height: 100vh;
