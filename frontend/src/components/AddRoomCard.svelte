@@ -18,7 +18,7 @@
 
   <div class="add-form">
     <input placeholder="Room name" bind:value={newRoomName} />
-    <button on:click={onAddRoom} disabled={!canAddRoom}>Add Room</button>
+    <button onclick={onAddRoom} disabled={!canAddRoom}>Add Room</button>
   </div>
 </section>
 

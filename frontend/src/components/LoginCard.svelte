@@ -36,11 +36,11 @@
     <h1>{isRegister ? "Create Account" : "Welcome Back"}</h1>
 
     {#if isRegister}
-      <input placeholder="Display name" bind:value={displayName} />
+      <input placeholder="Display name" bind:value={displayName}  autocomplete="name"/>
     {/if}
 
-    <input placeholder="Email" bind:value={email} />
-    <input placeholder="Password" type="password" bind:value={password} />
+    <input placeholder="Email" bind:value={email} autocomplete="email"/>
+    <input placeholder="Password" type="password" bind:value={password} autocomplete={isRegister ? "new-password" : "current-password"}/>
 
     {#if errorMessage}
       <p class="error">{errorMessage}</p>

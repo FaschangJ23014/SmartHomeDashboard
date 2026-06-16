@@ -8,6 +8,7 @@
   import AddRoomCard from "./components/AddRoomCard.svelte";
   import AddDeviceCard from "./components/AddDeviceCard.svelte";
   import UserBar from "./components/UserBar.svelte";
+  import ProfilePage from "./components/ProfilePage.svelte";
 
   //Login
   import LoginCard from "./components/LoginCard.svelte";
@@ -18,6 +19,8 @@
 
 
 
+  
+
   import { getRooms, createRoom, removeRoom } from "./api/roomsApi";
   import {getDevices, createDevice, toggleDeviceById, removeDevice} from "./api/deviceApi";
   import { getHomeAssistantEntities } from "./api/homeAssistantApi";
@@ -25,6 +28,8 @@
 
 
 
+
+  let currentView = $state<"dashboard" | "profile">("dashboard");
 
   let currentUser = $state<AuthUser | null>(getUser());
   let weather = $state<Weather | null>(null);
@@ -171,6 +176,7 @@ async function deleteDevice(id: number) {
 function logout() {
   clearAuth();
   currentUser = null;
+  currentView = "dashboard";
   devices = [];
   dbRooms = [];
   haEntities = [];
@@ -196,9 +202,22 @@ async function loadDashboardData() {
 
 {#if !currentUser}
   <LoginCard onLogin={handleLogin} />
+
+{:else if currentView === "profile"}
+
+  <ProfilePage
+    user={currentUser}
+    onBack={() => (currentView = "dashboard")}
+  />
+
 {:else}
+
   <main class="app">
-    <UserBar user={currentUser} onLogout={logout} />
+    <UserBar
+      user={currentUser}
+      onLogout={logout}
+      onProfileClick={() => (currentView = "profile")}
+    />
 
     <Hero {weather} deviceCount={devices.length} />
 
@@ -235,6 +254,7 @@ async function loadDashboardData() {
   </main>
 
   <Footer />
+
 {/if}
 
 

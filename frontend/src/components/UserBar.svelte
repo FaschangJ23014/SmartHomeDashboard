@@ -3,15 +3,17 @@
 
   let {
     user,
-    onLogout
+    onLogout,
+    onProfileClick
   } = $props<{
     user: AuthUser;
     onLogout: () => void;
+    onProfileClick: () => void;
   }>();
 </script>
 
 <div class="user-bar">
-  <button class="profile-button">
+  <button class="profile-button" onclick={onProfileClick}>
     <span class="avatar">{user.displayName.charAt(0).toUpperCase()}</span>
     <span>{user.displayName}</span>
   </button>
@@ -61,9 +63,5 @@
   .logout-button {
     color: #fecaca;
     border-color: rgba(239, 68, 68, 0.35);
-  }
-
-  .logout-button:hover {
-    box-shadow: 0 0 22px rgba(239, 68, 68, 0.25);
   }
 </style>

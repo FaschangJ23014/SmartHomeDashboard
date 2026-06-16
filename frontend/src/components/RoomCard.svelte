@@ -34,7 +34,7 @@
         {activeDeviceCount}/{devices.length} on
       </div>
 
-      <button class="delete-button small-delete" on:click={() => onDeleteRoom(room.id)}>
+      <button class="delete-button small-delete" onclick={() => onDeleteRoom(room.id)}>
         Delete
       </button>
     </div>
