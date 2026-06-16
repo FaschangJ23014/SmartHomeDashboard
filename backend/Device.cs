@@ -13,4 +13,7 @@ public class Device
     //Für IoT Entwicklung
     public string IntegrationType { get; set; } = "Simulation";
     public string? ExternalId { get; set; }
+
+    public int AppUserId { get; set; }
+    public AppUser? AppUser { get; set; }
 }

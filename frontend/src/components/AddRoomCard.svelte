@@ -41,7 +41,7 @@
     box-shadow:
       0 0 40px rgba(103, 232, 249, 0.08),
       0 0 80px rgba(167, 139, 250, 0.08);
-    backdrop-filter: blur(24px);
+    backdrop-filter: blur(10px);
   }
 
   .section-label {

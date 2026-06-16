@@ -11,4 +11,6 @@ public class SmartHomeDbContext : DbContext
 
     public DbSet<Room> Rooms => Set<Room>();
     public DbSet<Device> Devices => Set<Device>();
+    public DbSet<AppUser> AppUsers => Set<AppUser>();
+    public DbSet<HomeAssistantConfig> HomeAssistantConfigs => Set<HomeAssistantConfig>();
 }

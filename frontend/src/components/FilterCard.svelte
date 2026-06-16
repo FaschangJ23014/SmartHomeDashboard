@@ -28,7 +28,7 @@
     border-radius: 24px;
     background: rgba(3, 7, 18, 0.45);
     border: 1px solid rgba(255,255,255,0.12);
-    backdrop-filter: blur(18px);
+    backdrop-filter: blur(10px);
   }
 
   .filter-info {

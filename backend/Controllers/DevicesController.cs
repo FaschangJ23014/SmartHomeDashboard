@@ -1,27 +1,40 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace backend.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class DevicesController : ControllerBase
 {
     private readonly SmartHomeDbContext _context;
     private readonly HomeAssistantService _homeAssistantService;
 
-    public DevicesController(SmartHomeDbContext context, HomeAssistantService homeAssistantService)
+    public DevicesController(
+        SmartHomeDbContext context,
+        HomeAssistantService homeAssistantService
+    )
     {
         _context = context;
         _homeAssistantService = homeAssistantService;
     }
 
+    private int GetUserId()
+    {
+        return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetDevices()
     {
+        var userId = GetUserId();
+
         var devices = await _context.Devices
-            .Include(d => d.Room)
+            .Include(device => device.Room)
+            .Where(device => device.AppUserId == userId)
             .ToListAsync();
 
         return Ok(devices);
@@ -30,7 +43,13 @@ public class DevicesController : ControllerBase
     [HttpPost("{id}/toggle")]
     public async Task<IActionResult> ToggleDevice(int id)
     {
-        var device = await _context.Devices.FindAsync(id);
+        var userId = GetUserId();
+
+        var device = await _context.Devices
+            .FirstOrDefaultAsync(device =>
+                device.Id == id &&
+                device.AppUserId == userId
+            );
 
         if (device == null)
             return NotFound();
@@ -69,19 +88,31 @@ public class DevicesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> AddDevice(Device device)
     {
-        var roomExists = await _context.Rooms.AnyAsync(r => r.Id == device.RoomId);
+        var userId = GetUserId();
+
+        var roomExists = await _context.Rooms
+            .AnyAsync(room =>
+                room.Id == device.RoomId &&
+                room.AppUserId == userId
+            );
 
         if (!roomExists)
             return BadRequest("Room does not exist.");
 
+        device.Id = 0;
+        device.AppUserId = userId;
+        device.AppUser = null;
         device.Room = null;
 
         _context.Devices.Add(device);
         await _context.SaveChangesAsync();
 
         var createdDevice = await _context.Devices
-            .Include(d => d.Room)
-            .FirstOrDefaultAsync(d => d.Id == device.Id);
+            .Include(device => device.Room)
+            .FirstOrDefaultAsync(device =>
+                device.Id == device.Id &&
+                device.AppUserId == userId
+            );
 
         return Ok(createdDevice);
     }
@@ -89,7 +120,13 @@ public class DevicesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteDevice(int id)
     {
-        var device = await _context.Devices.FindAsync(id);
+        var userId = GetUserId();
+
+        var device = await _context.Devices
+            .FirstOrDefaultAsync(device =>
+                device.Id == id &&
+                device.AppUserId == userId
+            );
 
         if (device == null)
             return NotFound();
@@ -99,6 +136,4 @@ public class DevicesController : ControllerBase
 
         return NoContent();
     }
-
-
 }

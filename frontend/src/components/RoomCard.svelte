@@ -69,7 +69,7 @@
     box-shadow:
       0 24px 80px rgba(0, 0, 0, 0.35),
       inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(24px);
+    backdrop-filter: blur(10px);
     transition:
       transform 0.25s ease,
       box-shadow 0.25s ease;

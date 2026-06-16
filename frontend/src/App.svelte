@@ -12,15 +12,8 @@
 
 
 
-
-
   import { getRooms, createRoom, removeRoom } from "./api/roomsApi";
-  import {
-  getDevices,
-  createDevice,
-  toggleDeviceById,
-  removeDevice
-  } from "./api/deviceApi";
+  import {getDevices, createDevice, toggleDeviceById, removeDevice} from "./api/deviceApi";
   import { getHomeAssistantEntities } from "./api/homeAssistantApi";
   import { getWeatherByCurrentLocation } from "./api/weatherApi";
 
@@ -46,10 +39,7 @@
 
   const MAX_ROOM_NAME_LENGTH = 40;
 
-  let canAddRoom = $derived(
-    newRoomName.trim().length > 0 &&
-    newRoomName.trim().length <= MAX_ROOM_NAME_LENGTH
-  );
+  let canAddRoom = $derived(newRoomName.trim().length > 0 && newRoomName.trim().length <= MAX_ROOM_NAME_LENGTH);
 
   let availableHaEntities = $derived(
     haEntities.filter(
@@ -64,15 +54,10 @@
 
   let filteredRooms = $derived(
     dbRooms.filter((room) => {
-      const matchesRoom = room.name
-        .toLowerCase()
-        .includes(roomSearch.toLowerCase().trim());
+      const matchesRoom = room.name.toLowerCase().includes(roomSearch.toLowerCase().trim());
 
       const matchesDevice =
-        deviceSearch.trim() === "" ||
-        getDevicesForRoom(room.id).some((device) =>
-          device.name.toLowerCase().includes(deviceSearch.toLowerCase().trim())
-        );
+        deviceSearch.trim() === "" || getDevicesForRoom(room.id).some((device) => device.name.toLowerCase().includes(deviceSearch.toLowerCase().trim()));
 
       return matchesRoom && matchesDevice;
     })
@@ -237,10 +222,12 @@ async function deleteDevice(id: number) {
       #070a12;
     color: white;
     font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background-size: 200% 200%;
-    animation: gradientMove 12s ease infinite;
+
   }
 
+:global(body) {
+  animation: none;
+}
   @keyframes gradientMove {
     0% {
       background-position: 0% 50%;

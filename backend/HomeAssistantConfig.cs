@@ -1,11 +1,10 @@
 ﻿namespace backend;
 
-public class Room
+public class HomeAssistantConfig
 {
     public int Id { get; set; }
-    public string Name { get; set; } = "";
-
-    public List<Device> Devices { get; set; } = new();
+    public string BaseUrl { get; set; } = "";
+    public string TokenEncrypted { get; set; } = "";
 
     public int AppUserId { get; set; }
     public AppUser? AppUser { get; set; }
