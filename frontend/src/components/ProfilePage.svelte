@@ -1,5 +1,11 @@
 <script lang="ts">
   import type { AuthUser } from "../api/authApi";
+  import { onMount } from "svelte";
+
+  import {
+  getHomeAssistantConfig,
+  saveHomeAssistantConfig
+} from "../api/homeAssistantConfigApi";
 
   let {
     user,
@@ -11,13 +17,33 @@
 
   let homeAssistantUrl = $state("");
   let homeAssistantToken = $state("");
+
+  async function save() {
+  const success = await saveHomeAssistantConfig(
+    homeAssistantUrl,
+    homeAssistantToken
+  );
+
+  if (success) {
+    alert("Configuration saved");
+  }
+}
+
+onMount(async () => {
+  const config = await getHomeAssistantConfig();
+
+  if (!config) return;
+
+  homeAssistantUrl = config.baseUrl;
+});
 </script>
 
 <main class="profile-page">
   <section class="profile-card">
+    
     <button class="back-button" onclick={onBack}>
-      ← Back to Dashboard
-    </button>
+  ← Back to Dashboard
+      </button>
 
     <p class="eyebrow">USER PROFILE</p>
     <h1>{user.displayName}</h1>
@@ -52,7 +78,7 @@
         Test Connection
       </button>
 
-      <button>
+      <button onclick={save}>
         Save Configuration
       </button>
     </div>

@@ -7,53 +7,71 @@ namespace backend;
 public class HomeAssistantService
 {
     private readonly HttpClient _httpClient;
-    private readonly IConfiguration _configuration;
 
-    public HomeAssistantService(HttpClient httpClient, IConfiguration configuration)
+    public HomeAssistantService(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        _configuration = configuration;
-
-        var token = _configuration["HomeAssistant:Token"];
-        _httpClient.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", token);
     }
 
-    public async Task<bool> TurnOnAsync(string entityId)
+    public async Task<bool> TurnOnAsync(
+        string baseUrl,
+        string token,
+        string entityId)
     {
-        return await CallService(entityId, "turn_on");
+        return await CallService(baseUrl, token, entityId, "turn_on");
     }
 
-    public async Task<bool> TurnOffAsync(string entityId)
+    public async Task<bool> TurnOffAsync(
+        string baseUrl,
+        string token,
+        string entityId)
     {
-        return await CallService(entityId, "turn_off");
+        return await CallService(baseUrl, token, entityId, "turn_off");
     }
 
-    private async Task<bool> CallService(string entityId, string service)
+    private async Task<bool> CallService(
+        string baseUrl,
+        string token,
+        string entityId,
+        string service)
     {
-        var baseUrl = _configuration["HomeAssistant:BaseUrl"];
-
         var domain = entityId.Split('.')[0];
 
-        var url = $"{baseUrl}/api/services/{domain}/{service}";
+        var url = $"{baseUrl.TrimEnd('/')}/api/services/{domain}/{service}";
+
+        var request = new HttpRequestMessage(HttpMethod.Post, url);
+
+        request.Headers.Authorization =
+            new AuthenticationHeaderValue("Bearer", token);
 
         var json = JsonSerializer.Serialize(new
         {
             entity_id = entityId
         });
 
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        request.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json"
+        );
 
-        var response = await _httpClient.PostAsync(url, content);
+        var response = await _httpClient.SendAsync(request);
 
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<List<HomeAssistantEntityDto>> GetEntitiesAsync()
+    public async Task<List<HomeAssistantEntityDto>> GetEntitiesAsync(
+        string baseUrl,
+        string token)
     {
-        var baseUrl = _configuration["HomeAssistant:BaseUrl"];
+        var url = $"{baseUrl.TrimEnd('/')}/api/states";
 
-        var response = await _httpClient.GetAsync($"{baseUrl}/api/states");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        request.Headers.Authorization =
+            new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await _httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
             return new List<HomeAssistantEntityDto>();

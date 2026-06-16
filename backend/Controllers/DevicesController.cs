@@ -59,17 +59,35 @@ public class DevicesController : ControllerBase
             if (string.IsNullOrWhiteSpace(device.ExternalId))
                 return BadRequest("Home Assistant entity id is missing.");
 
+            var config = await _context.HomeAssistantConfigs
+                .FirstOrDefaultAsync(config => config.AppUserId == userId);
+
+            if (config == null)
+                return BadRequest("Home Assistant is not configured.");
+
             bool success;
 
             if (device.IsOn)
             {
-                success = await _homeAssistantService.TurnOffAsync(device.ExternalId);
-                device.IsOn = false;
+                success = await _homeAssistantService.TurnOffAsync(
+                    config.BaseUrl,
+                    config.TokenEncrypted,
+                    device.ExternalId
+                );
+
+                if (success)
+                    device.IsOn = false;
             }
             else
             {
-                success = await _homeAssistantService.TurnOnAsync(device.ExternalId);
-                device.IsOn = true;
+                success = await _homeAssistantService.TurnOnAsync(
+                    config.BaseUrl,
+                    config.TokenEncrypted,
+                    device.ExternalId
+                );
+
+                if (success)
+                    device.IsOn = true;
             }
 
             if (!success)
@@ -107,11 +125,13 @@ public class DevicesController : ControllerBase
         _context.Devices.Add(device);
         await _context.SaveChangesAsync();
 
+        var createdDeviceId = device.Id;
+
         var createdDevice = await _context.Devices
-            .Include(device => device.Room)
-            .FirstOrDefaultAsync(device =>
-                device.Id == device.Id &&
-                device.AppUserId == userId
+            .Include(d => d.Room)
+            .FirstOrDefaultAsync(d =>
+                d.Id == createdDeviceId &&
+                d.AppUserId == userId
             );
 
         return Ok(createdDevice);
