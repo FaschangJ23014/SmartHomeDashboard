@@ -33,3 +33,19 @@ export async function saveHomeAssistantConfig(
 
   return res.ok;
 }
+
+export async function testHomeAssistantConfig(
+  baseUrl: string,
+  token: string
+): Promise<boolean> {
+  const res = await fetch(`${apiBaseUrl}/homeassistantconfig/test`, {
+    method: "POST",
+    headers: getJsonAuthHeaders(),
+    body: JSON.stringify({
+      baseUrl,
+      token
+    })
+  });
+
+  return res.ok;
+}

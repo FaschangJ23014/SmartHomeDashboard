@@ -3,9 +3,10 @@
   import { onMount } from "svelte";
 
   import {
-    getHomeAssistantConfig,
-    saveHomeAssistantConfig
-  } from "../api/homeAssistantConfigApi";
+  getHomeAssistantConfig,
+  saveHomeAssistantConfig,
+  testHomeAssistantConfig
+} from "../api/homeAssistantConfigApi";
 
   let {
     user,
@@ -42,6 +43,24 @@
       statusMessage = "Failed to save configuration";
     }
   }
+
+  async function testConnection() {
+  statusMessage = "";
+  statusType = "";
+
+  const success = await testHomeAssistantConfig(
+    homeAssistantUrl,
+    homeAssistantToken
+  );
+
+  if (success) {
+    statusType = "success";
+    statusMessage = "Home Assistant connection successful";
+  } else {
+    statusType = "error";
+    statusMessage = "Home Assistant connection failed";
+  }
+}
 
   onMount(async () => {
     const config = await getHomeAssistantConfig();
@@ -105,7 +124,7 @@
       {/if}
 
       <div class="actions">
-        <button class="secondary-button">
+        <button class="secondary-button" onclick={testConnection}>
           Test Connection
         </button>
 

@@ -79,4 +79,39 @@ public class HomeAssistantConfigController : ControllerBase
             hasToken = true
         });
     }
+
+    [HttpPost("test")]
+    public async Task<IActionResult> Test(SaveHomeAssistantConfigRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.BaseUrl))
+            return BadRequest("Home Assistant URL is required.");
+
+        if (string.IsNullOrWhiteSpace(request.Token))
+            return BadRequest("Home Assistant token is required.");
+
+        using var httpClient = new HttpClient();
+
+        var url = $"{request.BaseUrl.TrimEnd('/')}/api/states";
+
+        var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
+        httpRequest.Headers.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Bearer",
+                request.Token
+            );
+
+        try
+        {
+            var response = await httpClient.SendAsync(httpRequest);
+
+            if (!response.IsSuccessStatusCode)
+                return BadRequest("Connection failed.");
+
+            return Ok("Connection successful.");
+        }
+        catch
+        {
+            return BadRequest("Connection failed.");
+        }
+    }
 }
