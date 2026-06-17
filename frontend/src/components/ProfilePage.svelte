@@ -3,9 +3,9 @@
   import { onMount } from "svelte";
 
   import {
-  getHomeAssistantConfig,
-  saveHomeAssistantConfig
-} from "../api/homeAssistantConfigApi";
+    getHomeAssistantConfig,
+    saveHomeAssistantConfig
+  } from "../api/homeAssistantConfigApi";
 
   let {
     user,
@@ -17,70 +17,102 @@
 
   let homeAssistantUrl = $state("");
   let homeAssistantToken = $state("");
+  let isSaving = $state(false);
+  let statusMessage = $state("");
+  let statusType = $state<"success" | "error" | "">("");
 
   async function save() {
-  const success = await saveHomeAssistantConfig(
-    homeAssistantUrl,
-    homeAssistantToken
-  );
+    statusMessage = "";
+    statusType = "";
+    isSaving = true;
 
-  if (success) {
-    alert("Configuration saved");
+    const success = await saveHomeAssistantConfig(
+      homeAssistantUrl,
+      homeAssistantToken
+    );
+
+    isSaving = false;
+
+    if (success) {
+      statusType = "success";
+      statusMessage = "Configuration saved";
+      homeAssistantToken = "";
+    } else {
+      statusType = "error";
+      statusMessage = "Failed to save configuration";
+    }
   }
-}
 
-onMount(async () => {
-  const config = await getHomeAssistantConfig();
+  onMount(async () => {
+    const config = await getHomeAssistantConfig();
 
-  if (!config) return;
+    if (!config) return;
 
-  homeAssistantUrl = config.baseUrl;
-});
+    homeAssistantUrl = config.baseUrl;
+  });
 </script>
 
 <main class="profile-page">
   <section class="profile-card">
-    
     <button class="back-button" onclick={onBack}>
-  ← Back to Dashboard
-      </button>
+      ← Back to Dashboard
+    </button>
 
-    <p class="eyebrow">USER PROFILE</p>
-    <h1>{user.displayName}</h1>
-    <p class="email">{user.email}</p>
+    <div class="profile-header">
+      <div class="avatar-large">
+        {user.displayName.charAt(0).toUpperCase()}
+      </div>
 
-    <div class="divider"></div>
+      <div>
+        <p class="eyebrow">USER PROFILE</p>
+        <h1>{user.displayName}</h1>
+        <p class="email">{user.email}</p>
+      </div>
+    </div>
 
-    <p class="eyebrow">HOME ASSISTANT</p>
-    <h2>Connection Settings</h2>
+    <div class="settings-section">
+      <div>
+        <p class="eyebrow">HOME ASSISTANT</p>
+        <h2>Connection Settings</h2>
+        <p class="section-description">
+          Connect your personal Home Assistant instance to load and control your smart devices.
+        </p>
+      </div>
 
-    <label>
-      Home Assistant URL
-      <input
-        placeholder="http://192.168.31.8:8123"
-        bind:value={homeAssistantUrl}
-        autocomplete="off"
-      />
-    </label>
+      <label>
+        Home Assistant URL
+        <input
+          placeholder="http://192.168.31.8:8123"
+          bind:value={homeAssistantUrl}
+          autocomplete="off"
+        />
+      </label>
 
-    <label>
-      Home Assistant Token
-      <input
-        placeholder="Long-Lived Access Token"
-        type="password"
-        bind:value={homeAssistantToken}
-        autocomplete="off"
-      />
-    </label>
+      <label>
+        Home Assistant Token
+        <input
+          placeholder="Long-Lived Access Token"
+          type="password"
+          bind:value={homeAssistantToken}
+          autocomplete="off"
+        />
+      </label>
 
-    <div class="actions">
-      <button class="secondary-button">
-        Test Connection
-      </button>
+      {#if statusMessage}
+        <div class:success={statusType === "success"} class:error={statusType === "error"} class="status-message">
+          {statusType === "success" ? "✅" : "❌"} {statusMessage}
+        </div>
+      {/if}
 
-      <button onclick={save}>
-        Save Configuration
-      </button>
+      <div class="actions">
+        <button class="secondary-button">
+          Test Connection
+        </button>
+
+        <button onclick={save} disabled={isSaving}>
+          {isSaving ? "Saving..." : "Save Configuration"}
+        </button>
+      </div>
     </div>
   </section>
 </main>
@@ -88,19 +120,53 @@ onMount(async () => {
 <style>
   .profile-page {
     padding: 32px;
-    max-width: 900px;
+    max-width: 960px;
     margin: 0 auto;
   }
 
   .profile-card {
     display: grid;
-    gap: 16px;
+    gap: 24px;
     padding: 28px;
-    border-radius: 28px;
-    background: linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+    border-radius: 32px;
+    background:
+      linear-gradient(145deg, rgba(255,255,255,0.13), rgba(255,255,255,0.04));
     border: 1px solid rgba(255,255,255,0.18);
     box-shadow: 0 24px 80px rgba(0,0,0,0.35);
     backdrop-filter: blur(10px);
+  }
+
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 22px;
+    border-radius: 26px;
+    background: rgba(3, 7, 18, 0.45);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .avatar-large {
+    width: 76px;
+    height: 76px;
+    border-radius: 24px;
+    display: grid;
+    place-items: center;
+    font-size: 34px;
+    font-weight: 900;
+    color: #020617;
+    background: linear-gradient(135deg, #67e8f9, #a78bfa);
+    box-shadow: 0 0 30px rgba(103, 232, 249, 0.22);
+    flex-shrink: 0;
+  }
+
+  .settings-section {
+    display: grid;
+    gap: 16px;
+    padding: 22px;
+    border-radius: 26px;
+    background: rgba(3, 7, 18, 0.36);
+    border: 1px solid rgba(103, 232, 249, 0.14);
   }
 
   .eyebrow {
@@ -108,12 +174,13 @@ onMount(async () => {
     letter-spacing: 0.18em;
     font-size: 12px;
     font-weight: 700;
-    margin: 0;
+    margin: 0 0 6px;
   }
 
   h1 {
     margin: 0;
-    font-size: clamp(38px, 7vw, 72px);
+    font-size: clamp(36px, 7vw, 64px);
+    line-height: 0.95;
   }
 
   h2 {
@@ -121,15 +188,10 @@ onMount(async () => {
     font-size: 28px;
   }
 
-  .email {
+  .email,
+  .section-description {
     color: #aab4cf;
     margin: 0;
-  }
-
-  .divider {
-    height: 1px;
-    background: rgba(255,255,255,0.12);
-    margin: 10px 0;
   }
 
   label {
@@ -146,6 +208,29 @@ onMount(async () => {
     background: rgba(3, 7, 18, 0.65);
     color: white;
     outline: none;
+  }
+
+  input:focus {
+    border-color: rgba(103, 232, 249, 0.7);
+    box-shadow: 0 0 0 3px rgba(103, 232, 249, 0.12);
+  }
+
+  .status-message {
+    padding: 12px 14px;
+    border-radius: 16px;
+    font-weight: 800;
+  }
+
+  .status-message.success {
+    color: #bbf7d0;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+  }
+
+  .status-message.error {
+    color: #fecaca;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.25);
   }
 
   .actions {
@@ -166,6 +251,11 @@ onMount(async () => {
     background: linear-gradient(135deg, #67e8f9, #a78bfa);
   }
 
+  button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
   .secondary-button,
   .back-button {
     color: white;
@@ -175,5 +265,24 @@ onMount(async () => {
 
   .back-button {
     justify-self: start;
+  }
+
+  @media (max-width: 720px) {
+    .profile-page {
+      padding: 20px;
+    }
+
+    .profile-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .actions {
+      flex-direction: column;
+    }
+
+    .actions button {
+      width: 100%;
+    }
   }
 </style>
