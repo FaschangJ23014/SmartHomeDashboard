@@ -12,14 +12,17 @@ public class DevicesController : ControllerBase
 {
     private readonly SmartHomeDbContext _context;
     private readonly HomeAssistantService _homeAssistantService;
+    private readonly TokenProtector _tokenProtector;
 
     public DevicesController(
-        SmartHomeDbContext context,
-        HomeAssistantService homeAssistantService
-    )
+     SmartHomeDbContext context,
+     HomeAssistantService homeAssistantService,
+     TokenProtector tokenProtector
+ )
     {
         _context = context;
         _homeAssistantService = homeAssistantService;
+        _tokenProtector = tokenProtector;
     }
 
     private int GetUserId()
@@ -65,26 +68,20 @@ public class DevicesController : ControllerBase
             if (config == null)
                 return BadRequest("Home Assistant is not configured.");
 
+            var token = _tokenProtector.Unprotect(config.TokenEncrypted);
+
             bool success;
 
             if (device.IsOn)
             {
-                success = await _homeAssistantService.TurnOffAsync(
-                    config.BaseUrl,
-                    config.TokenEncrypted,
-                    device.ExternalId
-                );
+                success = await _homeAssistantService.TurnOffAsync(config.BaseUrl, token, device.ExternalId);
 
                 if (success)
                     device.IsOn = false;
             }
             else
             {
-                success = await _homeAssistantService.TurnOnAsync(
-                    config.BaseUrl,
-                    config.TokenEncrypted,
-                    device.ExternalId
-                );
+                success = await _homeAssistantService.TurnOnAsync(config.BaseUrl, token, device.ExternalId);
 
                 if (success)
                     device.IsOn = true;

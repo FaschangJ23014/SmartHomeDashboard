@@ -12,13 +12,17 @@ public class HomeAssistantController : ControllerBase
 {
     private readonly SmartHomeDbContext _context;
     private readonly HomeAssistantService _homeAssistantService;
+    private readonly TokenProtector _tokenProtector;
 
     public HomeAssistantController(
         SmartHomeDbContext context,
-        HomeAssistantService homeAssistantService)
+        HomeAssistantService homeAssistantService,
+        TokenProtector tokenProtector   )
     {
         _context = context;
         _homeAssistantService = homeAssistantService;
+        _tokenProtector = tokenProtector;
+
     }
 
     private int GetUserId()
@@ -37,10 +41,9 @@ public class HomeAssistantController : ControllerBase
         if (config == null)
             return BadRequest("Home Assistant is not configured.");
 
-        var entities = await _homeAssistantService.GetEntitiesAsync(
-            config.BaseUrl,
-            config.TokenEncrypted
-        );
+        var token = _tokenProtector.Unprotect(config.TokenEncrypted);
+
+        var entities = await _homeAssistantService.GetEntitiesAsync(config.BaseUrl, token);
 
         var filtered = entities
             .Where(e =>

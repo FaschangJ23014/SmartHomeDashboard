@@ -11,10 +11,13 @@ namespace backend.Controllers;
 public class HomeAssistantConfigController : ControllerBase
 {
     private readonly SmartHomeDbContext _context;
+    private readonly TokenProtector _tokenProtector;
 
-    public HomeAssistantConfigController(SmartHomeDbContext context)
+    public HomeAssistantConfigController(SmartHomeDbContext context, TokenProtector tokenProtector)
     {
         _context = context;
+        _tokenProtector = tokenProtector;
+
     }
 
     private int GetUserId()
@@ -60,7 +63,7 @@ public class HomeAssistantConfigController : ControllerBase
             {
                 AppUserId = userId,
                 BaseUrl = request.BaseUrl.Trim(),
-                TokenEncrypted = request.Token.Trim()
+                TokenEncrypted = _tokenProtector.Protect(request.Token.Trim())
             };
 
             _context.HomeAssistantConfigs.Add(config);
@@ -68,7 +71,7 @@ public class HomeAssistantConfigController : ControllerBase
         else
         {
             config.BaseUrl = request.BaseUrl.Trim();
-            config.TokenEncrypted = request.Token.Trim();
+            config.TokenEncrypted = _tokenProtector.Protect(request.Token.Trim());
         }
 
         await _context.SaveChangesAsync();

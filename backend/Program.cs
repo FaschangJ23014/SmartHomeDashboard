@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +61,9 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddDataProtection();
+builder.Services.AddScoped<TokenProtector>();
 
 var app = builder.Build();
 
